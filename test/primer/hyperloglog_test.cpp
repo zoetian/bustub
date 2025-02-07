@@ -113,7 +113,7 @@ TEST(HyperLogLogTest, EdgeTest1) {
   ASSERT_EQ(obj1.GetCardinality(), 0);
 }
 
-TEST(HyperLogLogTest, DISABLED_EdgeTest2) {
+TEST(HyperLogLogTest, EdgeTest2) {
   auto obj = HyperLogLog<int64_t>(static_cast<int16_t>(0));
   obj.ComputeCardinality();
   ASSERT_EQ(obj.GetCardinality(), 0);
@@ -198,7 +198,7 @@ TEST(HyperLogLogTest, ParallelTest1) {
   ASSERT_EQ(ans, 13010);
 }
 
-TEST(HyperLogLogTest, DISABLED_PrestoBasicTest1) {
+TEST(HyperLogLogTest, PrestoBasicTest1) {
   auto obj = HyperLogLogPresto<std::string>(static_cast<int16_t>(2));
   ASSERT_EQ(obj.GetCardinality(), 0);
 
@@ -208,7 +208,7 @@ TEST(HyperLogLogTest, DISABLED_PrestoBasicTest1) {
 
   obj.ComputeCardinality();
   auto ans = obj.GetCardinality();
-  ASSERT_EQ(ans, 3);
+  ASSERT_EQ(ans, 3); // get 0 instead
   for (uint64_t i = 0; i < 10; i++) {
     obj.AddElem("Andy");
     obj.AddElem("Connor");
@@ -222,7 +222,7 @@ TEST(HyperLogLogTest, DISABLED_PrestoBasicTest1) {
     if (i == 0) {
       obj.ComputeCardinality();
       ans = obj.GetCardinality();
-      ASSERT_EQ(ans, 4);
+      ASSERT_EQ(ans, 4); // get 0 instead
     }
   }
 
@@ -231,7 +231,7 @@ TEST(HyperLogLogTest, DISABLED_PrestoBasicTest1) {
   ASSERT_EQ(ans, 4);
 }
 
-TEST(HyperLogLogTest, DISABLED_PrestoCase1) {
+TEST(HyperLogLogTest, PrestoCase1) {
   auto obj = HyperLogLogPresto<int64_t>(static_cast<int16_t>(1));
   auto ans = obj.GetCardinality();
 
@@ -242,7 +242,7 @@ TEST(HyperLogLogTest, DISABLED_PrestoCase1) {
   obj.ComputeCardinality();
   ans = obj.GetCardinality();
 
-  ASSERT_EQ(ans, 3);
+  ASSERT_EQ(ans, 3); // get 0 instead
 
   auto expected1 = obj.GetDenseBucket();
   ASSERT_EQ(2ULL, expected1[0].to_ullong());
@@ -309,7 +309,7 @@ TEST(HyperLogLogTest, DISABLED_PrestoCase2) {
   ASSERT_EQ(obj.GetOverflowBucketofIndex(0).to_ullong(), 4);
 }
 
-TEST(HyperLogLogTest, DISABLED_PrestoEdgeCase) {
+TEST(HyperLogLogTest, PrestoEdgeCase) {
   auto obj = HyperLogLogPresto<int64_t>(static_cast<int16_t>(-2));
   obj.ComputeCardinality();
   auto ans = obj.GetCardinality();
