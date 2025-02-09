@@ -208,7 +208,7 @@ TEST(HyperLogLogTest, PrestoBasicTest1) {
 
   obj.ComputeCardinality();
   auto ans = obj.GetCardinality();
-  ASSERT_EQ(ans, 3); // get 0 instead
+  ASSERT_EQ(ans, 3);
   for (uint64_t i = 0; i < 10; i++) {
     obj.AddElem("Andy");
     obj.AddElem("Connor");
@@ -242,7 +242,7 @@ TEST(HyperLogLogTest, PrestoCase1) {
   obj.ComputeCardinality();
   ans = obj.GetCardinality();
 
-  ASSERT_EQ(ans, 3); // get 2 instead
+  ASSERT_EQ(ans, 3);
 
   auto expected1 = obj.GetDenseBucket();
   ASSERT_EQ(2ULL, expected1[0].to_ullong());
@@ -295,7 +295,7 @@ TEST(HyperLogLogTest, PrestoCase2) {
 
   obj.AddElem(65536UL);
   ASSERT_EQ(obj.GetDenseBucket()[0].to_ullong(), 0);
-  ASSERT_EQ(obj.GetOverflowBucketofIndex(0).to_ullong(), 1); // get 0 instead
+  ASSERT_EQ(obj.GetOverflowBucketofIndex(0).to_ullong(), 1);
 
   obj.AddElem(INT64_MIN);
   obj.ComputeCardinality();
