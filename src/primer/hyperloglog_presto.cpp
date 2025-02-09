@@ -27,7 +27,11 @@
 
 #include "primer/hyperloglog_presto.h"
 #include <_types/_uint64_t.h>
+#include <bitset>
+#include <cmath>
+#include <iostream>
 #include "primer/hyperloglog.h"
+#include <fstream>
 
 namespace bustub {
 
@@ -44,30 +48,39 @@ auto HyperLogLogPresto<KeyType>::AddElem(KeyType val) -> void {
   auto hash = CalculateHash(val);
   auto binary = std::bitset<BITSET_CAPACITY>(hash);
 
-  uint64_t bucket_idx = hash >> (BITSET_CAPACITY - n_leading_bits_);
+  std::ofstream outputFile("/tmp/output.txt", std::ios::app);
+  outputFile << "val1 " << val << std::endl;
+  outputFile << "hash1 " << hash << std::endl;
 
-  uint64_t trailing_zeros = 1;
-  uint64_t mask = 1ULL << (BITSET_CAPACITY - 1 - n_leading_bits_);
-  while ((mask > 0) && ((hash & mask) == 0)) {
-    trailing_zeros++;
-    mask >>= 1;
+  // guard on zero leading bits
+  uint64_t bucket_idx =  n_leading_bits_ == 0 ? 0 : hash >> (BITSET_CAPACITY - n_leading_bits_); // b = 3 (110)
+
+  uint64_t trailing_zeros = 0;
+  uint64_t mask = 1ULL;
+  // auto shifted_hash = hash | (n_leading_bits_ == 0) ? 0: (1ULL << (BITSET_CAPACITY - n_leading_bits_));
+  auto shifted = (n_leading_bits_ == 0) ? 0 : (1ULL << (BITSET_CAPACITY - n_leading_bits_));
+  auto shifted_hash = hash | shifted; 
+  while (mask > 0 && (shifted_hash & mask) == 0) {
+    trailing_zeros ++;
+    mask <<= 1;
   }
+  outputFile << "trailing_zeros " << trailing_zeros << std::endl;
 
-  if (trailing_zeros < 15) {
+  if (trailing_zeros < (1 << DENSE_BUCKET_SIZE)) {  ///////
     auto curr_val = dense_bucket_[bucket_idx].to_ulong();
     if (trailing_zeros > curr_val) {
       dense_bucket_[bucket_idx] = std::bitset<DENSE_BUCKET_SIZE>(trailing_zeros);
     }
-  } else {
-    auto overflow_val = trailing_zeros - 15;
+  } else {  // trail > 15
+    
+    // [leading bit] - [lsb msb]
+    auto total_binary = (overflow_bucket_[bucket_idx].to_ulong() << DENSE_BUCKET_SIZE) | dense_bucket_[bucket_idx].to_ulong();
+    outputFile << "total_binary " << total_binary << std::endl;
+    
+    if (trailing_zeros > total_binary) {
+      dense_bucket_[bucket_idx] = std::bitset<DENSE_BUCKET_SIZE>(trailing_zeros);
 
-    if (overflow_bucket_.find(bucket_idx) == overflow_bucket_.end()) {
-      overflow_bucket_[bucket_idx] = std::bitset<OVERFLOW_BUCKET_SIZE>(overflow_val);
-    } else {
-      auto curr_overflow_val = overflow_bucket_[bucket_idx].to_ulong();
-      if (curr_overflow_val < overflow_val) {
-        overflow_bucket_[bucket_idx] = std::bitset<OVERFLOW_BUCKET_SIZE>(overflow_val);
-      }
+      overflow_bucket_[bucket_idx] = std::bitset<OVERFLOW_BUCKET_SIZE>(trailing_zeros >> DENSE_BUCKET_SIZE);
     }
   }
 }
@@ -79,8 +92,8 @@ auto HyperLogLogPresto<T>::ComputeCardinality() -> void {
   uint64_t m = (1UL << n_leading_bits_);  // size of registers
 
   for (uint64_t i = 0; i < m; i++) {
-    uint64_t value = dense_bucket_[i].to_ulong();
-    value += overflow_bucket_[i].to_ulong();
+    int64_t value = dense_bucket_[i].to_ulong();
+    value += overflow_bucket_[i].to_ulong() << DENSE_BUCKET_SIZE; ///
     sum += std::pow(2, -value);
   }
   if (sum == 0.0) {
@@ -88,6 +101,12 @@ auto HyperLogLogPresto<T>::ComputeCardinality() -> void {
     return;
   }
   cardinality_ = std::floor(CONSTANT * m * m / sum);
+
+  std::ofstream outputFile("/tmp/output.txt", std::ios::app);
+  outputFile << "n_leading_bits2 " << n_leading_bits_ << std::endl;
+  outputFile << "m " << m << std::endl;
+  outputFile << "sum " << sum << std::endl;
+  outputFile << "===================" << std::endl;
 }
 
 template class HyperLogLogPresto<int64_t>;
