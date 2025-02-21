@@ -73,7 +73,7 @@ auto HyperLogLogPresto<KeyType>::AddElem(KeyType val) -> void {
   auto binary = std::bitset<BITSET_CAPACITY>(hash);
 
   // guard on zero leading bits
-  uint64_t bucket_idx =  n_leading_bits_ == 0 ? 0 : hash >> (BITSET_CAPACITY - n_leading_bits_);
+  uint64_t bucket_idx = n_leading_bits_ == 0 ? 0 : hash >> (BITSET_CAPACITY - n_leading_bits_);
 
   uint64_t trailing_zeros = 0;
   uint64_t mask = 1ULL;
@@ -81,7 +81,7 @@ auto HyperLogLogPresto<KeyType>::AddElem(KeyType val) -> void {
   auto shifted = (n_leading_bits_ == 0) ? 0 : (1ULL << (BITSET_CAPACITY - n_leading_bits_));
   auto shifted_hash = hash | shifted;
   while (mask > 0 && (shifted_hash & mask) == 0) {
-    trailing_zeros ++;
+    trailing_zeros++;
     mask <<= 1;
   }
 
@@ -91,7 +91,8 @@ auto HyperLogLogPresto<KeyType>::AddElem(KeyType val) -> void {
       dense_bucket_[bucket_idx] = std::bitset<DENSE_BUCKET_SIZE>(trailing_zeros);
     }
   } else {  // trailing > 15
-    auto total_binary = (overflow_bucket_[bucket_idx].to_ulong() << DENSE_BUCKET_SIZE) | dense_bucket_[bucket_idx].to_ulong();
+    auto total_binary =
+        (overflow_bucket_[bucket_idx].to_ulong() << DENSE_BUCKET_SIZE) | dense_bucket_[bucket_idx].to_ulong();
 
     if (trailing_zeros > total_binary) {
       dense_bucket_[bucket_idx] = std::bitset<DENSE_BUCKET_SIZE>(trailing_zeros);
@@ -108,7 +109,7 @@ auto HyperLogLogPresto<T>::ComputeCardinality() -> void {
 
   for (uint64_t i = 0; i < m; i++) {
     int64_t value = dense_bucket_[i].to_ulong();
-    value += overflow_bucket_[i].to_ulong() << DENSE_BUCKET_SIZE; ///
+    value += overflow_bucket_[i].to_ulong() << DENSE_BUCKET_SIZE;  ///
     sum += std::pow(2, -value);
   }
   if (sum == 0.0) {
