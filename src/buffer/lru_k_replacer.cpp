@@ -64,13 +64,7 @@ auto LRUKReplacer::Evict() -> std::optional<frame_id_t> {
   }
 
   if (victim_id != -1) {
-    // Remove(victim_id);
-    auto it = node_store_.find(victim_id);
-    if (!it->second.IsEvictable()) {
-      throw bustub::Exception("Attempting to remove a non-evictable frame");
-    }
-    curr_size_--;
-    node_store_.erase(it);
+    Remove(victim_id);
     return victim_id;
   }
 
@@ -145,7 +139,7 @@ void LRUKReplacer::SetEvictable(frame_id_t frame_id, bool set_evictable) {
  * @param frame_id id of frame to be removed
  */
 void LRUKReplacer::Remove(frame_id_t frame_id) {
-  std::scoped_lock<std::mutex> lock(latch_);
+  // std::scoped_lock<std::mutex> lock(latch_);
 
   auto it = node_store_.find(frame_id);
   if (it == node_store_.end()) {
